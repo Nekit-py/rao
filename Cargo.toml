@@ -22,6 +22,7 @@ askama = { version = "0.12.0", features = ["with-axum"] }
 askama_axum = "0.3.0"
 axum-macros = "0.3.8"
 axum-template = "1.0.0"
+chrono = { version = "0.4.31", features = ["serde"] }
 
 
 # database access
@@ -31,3 +32,11 @@ sqlx = { version = "0.7", features = [
 	"any",
 	"postgres",
 ] }
+
+[dependencies.uuid]
+version = "1.4.1"
+features = [
+    "v4",                # Lets you generate random UUIDs
+    "fast-rng",          # Use a faster (but still sufficiently random) RNG
+    "macro-diagnostics", # Enable better diagnostics for compile-time UUIDs
+]
