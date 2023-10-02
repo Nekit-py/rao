@@ -1,0 +1,7 @@
+/target
+**.env
+**.xlsx
+**.xls
+**.docx
+**.doc
+**.log
