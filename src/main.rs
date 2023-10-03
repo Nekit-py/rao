@@ -1,24 +1,24 @@
-use anyhow::Context;
-use dotenvy::dotenv;
-use sqlx::PgPool;
-use std::env;
-use std::net::SocketAddr;
-use serde::Deserialize;
-use axum::{
-    {routing::{get, post}, Router},
-    extract::{Query, State},
-    response::{IntoResponse, Response},
-    http::StatusCode,
-    Json
-};
+// use dotenvy::dotenv;
+// use sqlx::PgPool;
+// use tokio::time::error;
+// use std::env;
+// use std::net::SocketAddr;
+// use serde::Deserialize;
+use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder, Result};
+use serde::{Deserialize, Serialize};
+// use std::error::Error;
+
+
 
 mod orders {
-    use sqlx::PgPool;
-    use uuid::Uuid;
+    // use sqlx::PgPool;
+    // use uuid::Uuid;
+
+    // use self::schemas::NewOrder;
 
     pub mod schemas {
-        use chrono::{NaiveDate, NaiveDateTime, Local, Duration};
-        use uuid::Uuid;
+        use chrono::{NaiveDate, Local, Duration};
+        // use uuid::Uuid;
         use serde::{Deserialize, Serialize};
 
 
@@ -34,7 +34,7 @@ mod orders {
             InProgress(String)
         }
 
-        #[derive(Serialize, Debug)]
+        #[derive(Deserialize, Serialize, Debug)]
         pub struct NewOrder {
             pub deleted: bool,
             pub order_type: OrderType,
@@ -43,9 +43,10 @@ mod orders {
             pub responsible_employee: String,
             pub deadline: NaiveDate,
             pub status: Status,
-            pub close_date: NaiveDate,
-            pub comment: String
+            pub close_date: Option<NaiveDate>,
+            pub comment: Option<String>
         }
+
         impl Default for NewOrder {
             fn default() -> Self {
                 let now = Local::now().with_timezone(&Local).date_naive();
@@ -57,8 +58,8 @@ mod orders {
                     responsible_employee: "Козлов Опущенцев".to_string(),
                     deadline: now + Duration::days(3),
                     status: Status::InProgress("В работе".to_string()),
-                    close_date: now,
-                    comment: "-".to_string()
+                    close_date: None,
+                    comment: Some("-".to_string())
                 }
             }
         }
@@ -80,38 +81,47 @@ mod orders {
         //     comment: String
         // }
     }
-
-    pub async fn get_order(pool: &PgPool, id: Uuid) -> String {
-        "New order added".to_string()
-    }
-
-    pub async fn index() -> String {
-        "Rusty accounting of orders index page".to_string()
-    }
 }
 
+#[derive(Deserialize, Debug, Clone)]
+struct User {
+    age: u8,
+    // name: String
+}
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    use crate::orders;
+#[post("/add_order")]
+async fn add_order(user: String) -> HttpResponse {
+    HttpResponse::Ok().body(user)
+// async fn add_order(new_order: web::Json<orders::schemas::NewOrder>) -> impl Responder {
+    // web::Json(orders::schemas::NewOrder::default())
+    // HttpResponse::Ok().body(format!("{}", user.age))
+    // HttpResponse::Ok().body("Ok".to_string())
+}
 
-    dotenv().ok();
-    // let db_connection_str = env::var("DATABASE_URL").context("DATABASE_URL must be set")?;
-	// let pool = sqlx::PgPool::connect(&db_connection_str)
-    // 	.await
-    // 	.context("can't connect to database")?;
+#[get("/")]
+async fn hello() -> impl Responder {
+    HttpResponse::Ok().body("Hello world!")
+}
 
-	// let app = Router::new()
-    // 	.route("/", get(orders::index))
-    // 	.route("/order", get(orders::get_order))
-	// 	.with_state(pool);
+#[post("/echo")]
+async fn echo(req_body: String) -> impl Responder {
+    HttpResponse::Ok().body(req_body)
+}
 
-	// let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
-	// axum::Server::bind(&addr)
-    // 	.serve(app.into_make_service())
-    // 	.await?;
+async fn manual_hello() -> impl Responder {
+    HttpResponse::Ok().body("Hey there!")
+}
 
-    let new_order = orders::schemas::NewOrder::default();
-    println!("{:#?}", new_order);
-    Ok(())
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
+    HttpServer::new(|| {
+        App::new()
+            .service(hello)
+            .service(echo)
+            .service(add_order)
+            .route("/hey", web::get().to(manual_hello))
+    })
+    .bind(("127.0.0.1", 8080))?
+    .run()
+    .await
 }
