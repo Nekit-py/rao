@@ -8,8 +8,6 @@ use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder, Result
 use serde::{Deserialize, Serialize};
 // use std::error::Error;
 
-
-
 mod orders {
     // use sqlx::PgPool;
     // use uuid::Uuid;
@@ -17,21 +15,20 @@ mod orders {
     // use self::schemas::NewOrder;
 
     pub mod schemas {
-        use chrono::{NaiveDate, Local, Duration};
+        use chrono::{Duration, Local, NaiveDate};
         // use uuid::Uuid;
         use serde::{Deserialize, Serialize};
 
-
         #[derive(Serialize, Deserialize, Debug)]
-        pub enum OrderType{
+        pub enum OrderType {
             Order(String),
-            Disposal(String)
+            Disposal(String),
         }
 
         #[derive(Serialize, Deserialize, Debug)]
-        pub enum Status{
+        pub enum Status {
             Completed(String),
-            InProgress(String)
+            InProgress(String),
         }
 
         #[derive(Deserialize, Serialize, Debug)]
@@ -44,7 +41,7 @@ mod orders {
             pub deadline: NaiveDate,
             pub status: Status,
             pub close_date: Option<NaiveDate>,
-            pub comment: Option<String>
+            pub comment: Option<String>,
         }
 
         impl Default for NewOrder {
@@ -59,7 +56,7 @@ mod orders {
                     deadline: now + Duration::days(3),
                     status: Status::InProgress("В работе".to_string()),
                     close_date: None,
-                    comment: Some("-".to_string())
+                    comment: Some("-".to_string()),
                 }
             }
         }
@@ -83,19 +80,15 @@ mod orders {
     }
 }
 
-#[derive(Deserialize, Debug, Clone)]
-struct User {
-    age: u8,
-    // name: String
-}
+// #[derive(Deserialize, Serialize, Debug, Clone)]
+// struct User {
+//     age: u8,
+//     name: String,
+// }
 
 #[post("/add_order")]
-async fn add_order(user: String) -> HttpResponse {
-    HttpResponse::Ok().body(user)
-// async fn add_order(new_order: web::Json<orders::schemas::NewOrder>) -> impl Responder {
-    // web::Json(orders::schemas::NewOrder::default())
-    // HttpResponse::Ok().body(format!("{}", user.age))
-    // HttpResponse::Ok().body("Ok".to_string())
+async fn add_order(order: web::Json<orders::schemas::NewOrder>) -> HttpResponse {
+    HttpResponse::Ok().json(order)
 }
 
 #[get("/")]
@@ -125,3 +118,4 @@ async fn main() -> std::io::Result<()> {
     .run()
     .await
 }
+
