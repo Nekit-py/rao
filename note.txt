@@ -1,0 +1,31 @@
+Что шлем в запросе
+{
+    "deleted": false,
+    "number": "213П",
+    "order_type": "Order",
+    "title": "Тестовый приказ",
+    "initiator": "Федя Пупкин Амфибрахиевч",
+    "responsible_employee": "Козлов Опущенцев",
+    "deadline": "2023-09-15",
+    "status": "InProgress",
+    "close_date": null,
+    "comment": "No comment"
+}
+Что получает внутри ендпоинта
+Json(
+    NewOrder {
+        deleted: false,
+        number: "213П",
+        order_type: Order,
+        title: "Тестовый приказ",
+        initiator: "Федя Пупкин Амфибрахиевч",
+        responsible_employee: "Козлов Опущенцев",
+        deadline: 2023-09-15,
+        status: InProgress,
+        close_date: None,
+        comment: Some(
+            "No comment",
+        ),
+    },
+)
+

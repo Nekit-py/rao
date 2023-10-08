@@ -1,94 +1,33 @@
-// use dotenvy::dotenv;
-// use sqlx::PgPool;
-// use tokio::time::error;
-// use std::env;
-// use std::net::SocketAddr;
-// use serde::Deserialize;
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder, Result};
-use serde::{Deserialize, Serialize};
-// use std::error::Error;
-
-mod orders {
-    // use sqlx::PgPool;
-    // use uuid::Uuid;
-
-    // use self::schemas::NewOrder;
-
-    pub mod schemas {
-        use chrono::{Duration, Local, NaiveDate};
-        // use uuid::Uuid;
-        use serde::{Deserialize, Serialize};
-
-        #[derive(Serialize, Deserialize, Debug)]
-        pub enum OrderType {
-            Order(String),
-            Disposal(String),
-        }
-
-        #[derive(Serialize, Deserialize, Debug)]
-        pub enum Status {
-            Completed(String),
-            InProgress(String),
-        }
-
-        #[derive(Deserialize, Serialize, Debug)]
-        pub struct NewOrder {
-            pub deleted: bool,
-            pub order_type: OrderType,
-            pub title: String,
-            pub initiator: String,
-            pub responsible_employee: String,
-            pub deadline: NaiveDate,
-            pub status: Status,
-            pub close_date: Option<NaiveDate>,
-            pub comment: Option<String>,
-        }
-
-        impl Default for NewOrder {
-            fn default() -> Self {
-                let now = Local::now().with_timezone(&Local).date_naive();
-                NewOrder {
-                    deleted: false,
-                    order_type: OrderType::Order("Приказ".to_string()),
-                    title: "Тестовый приказ".to_string(),
-                    initiator: "Федя Пупкин Амфибрахиевч".to_string(),
-                    responsible_employee: "Козлов Опущенцев".to_string(),
-                    deadline: now + Duration::days(3),
-                    status: Status::InProgress("В работе".to_string()),
-                    close_date: None,
-                    comment: Some("-".to_string()),
-                }
-            }
-        }
-
-        // #[derive(Deserialize)]
-        // pub struct Order {
-        //     id: Option<Uuid>,
-        //     number: u32,
-        //     deleted: bool,
-        //     created: NaiveDateTime,
-        //     updated: NaiveDateTime,
-        //     order_type: OrderType,
-        //     title: String,
-        //     initiator: String,
-        //     responsible_employee: String,
-        //     deadline: NaiveDate,
-        //     status: Status,
-        //     close_date: NaiveDate,
-        //     comment: String
-        // }
-    }
-}
-
-// #[derive(Deserialize, Serialize, Debug, Clone)]
-// struct User {
-//     age: u8,
-//     name: String,
-// }
+mod db;
+// use crate::db::OrderModel;
+use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+use db::schema::*;
+use dotenv::dotenv;
+use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
 #[post("/add_order")]
-async fn add_order(order: web::Json<orders::schemas::NewOrder>) -> HttpResponse {
-    HttpResponse::Ok().json(order)
+async fn add_order(body: web::Json<NewOrder>, data: web::Data<AppState>) -> HttpResponse {
+    // println!("{:#?}", body);
+    let _query_result = sqlx::query_as!(
+        OrderModel,
+        "INSERT INTO _menin.orders (
+            deleted, number, order_type, title, initiator, responsible_employee,
+            deadline, status, closed, comment
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+        body.deleted,
+        body.number,
+        body.order_type as OrderType,
+        body.title,
+        body.initiator,
+        body.responsible_employee,
+        body.deadline,
+        body.status as Status,
+        body.closed,
+        body.comment
+    )
+    .execute(&data.db)
+    .await;
+    HttpResponse::Ok().body("Ok, cool!")
 }
 
 #[get("/")]
@@ -105,10 +44,34 @@ async fn manual_hello() -> impl Responder {
     HttpResponse::Ok().body("Hey there!")
 }
 
+pub struct AppState {
+    db: Pool<Postgres>,
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    HttpServer::new(|| {
+    dotenv().ok();
+    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let pool = match PgPoolOptions::new()
+        .max_connections(10)
+        .connect(&database_url)
+        .await
+    {
+        Ok(pool) => {
+            println!("✅Connection to the database is successful!");
+            pool
+        }
+        Err(err) => {
+            println!("🔥 Failed to connect to the database: {:?}", err);
+            std::process::exit(1);
+        }
+    };
+
+    println!("🚀 Server started successfully");
+
+    HttpServer::new(move || {
         App::new()
+            .app_data(web::Data::new(AppState { db: pool.clone() }))
             .service(hello)
             .service(echo)
             .service(add_order)
