@@ -8,30 +8,30 @@ pub enum OrderType {
     Disposal,
 }
 
-impl OrderType {
-    fn to_string(&self) -> String {
-        match self {
-            OrderType::Order => "Приказ".to_string(),
-            OrderType::Disposal => "Распоряжение".to_string(),
-        }
-    }
-}
+// impl OrderType {
+//     fn to_string(&self) -> String {
+//         match self {
+//             OrderType::Order => "Приказ".to_string(),
+//             OrderType::Disposal => "Распоряжение".to_string(),
+//         }
+//     }
+// }
 
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd, sqlx::Type, Deserialize, Serialize)]
-#[sqlx(rename_all = "lowercase", type_name = "status")]
-pub enum Status {
+#[sqlx(rename_all = "lowercase", type_name = "order_status")]
+pub enum OrderStatus {
     Completed,
     InProgress,
 }
 
-impl Status {
-    fn to_string(&self) -> String {
-        match self {
-            Status::Completed => "Закрыт".to_string(),
-            Status::InProgress => "На исполнении".to_string(),
-        }
-    }
-}
+// impl Status {
+//     fn to_string(&self) -> String {
+//         match self {
+//             Status::Completed => "Закрыт".to_string(),
+//             Status::InProgress => "На исполнении".to_string(),
+//         }
+//     }
+// }
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct NewOrder {
@@ -42,7 +42,6 @@ pub struct NewOrder {
     pub initiator: String,
     pub responsible_employee: String,
     pub deadline: NaiveDate,
-    pub status: Status,
     pub closed: Option<NaiveDateTime>,
     pub comment: Option<String>,
 }
@@ -58,7 +57,6 @@ impl Default for NewOrder {
             initiator: "Федя Пупкин Амфибрахиевч".to_string(),
             responsible_employee: "Козлов Опущенцев".to_string(),
             deadline: now + Duration::days(3),
-            status: Status::InProgress,
             closed: None,
             comment: Some("-".to_string()),
         }

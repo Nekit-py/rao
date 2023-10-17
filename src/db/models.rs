@@ -1,4 +1,4 @@
-use crate::db::{OrderType, Status};
+use crate::db::{OrderType, OrderStatus};
 use chrono::{NaiveDate, NaiveDateTime};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
@@ -16,7 +16,7 @@ pub struct OrderModel {
     pub initiator: String,
     pub responsible_employee: String,
     pub deadline: NaiveDate,
-    pub status: Status,
+    pub order_status: OrderStatus,
     pub closed: Option<NaiveDateTime>,
     pub comment: Option<String>,
 }

@@ -7,26 +7,28 @@ use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
 #[post("/add_order")]
 async fn add_order(body: web::Json<NewOrder>, data: web::Data<AppState>) -> HttpResponse {
-    // println!("{:#?}", body);
-    let _query_result = sqlx::query_as!(
-        OrderModel,
+    let _query_result = sqlx::query(
         "INSERT INTO _menin.orders (
             deleted, number, order_type, title, initiator, responsible_employee,
-            deadline, status, closed, comment
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
-        body.deleted,
-        body.number,
-        body.order_type as OrderType,
-        body.title,
-        body.initiator,
-        body.responsible_employee,
-        body.deadline,
-        body.status as Status,
-        body.closed,
-        body.comment
-    )
+            deadline, closed, comment
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)")
+        .bind(body.deleted)
+        .bind(body.number.clone())
+        .bind(body.order_type as OrderType)
+        .bind(body.title.clone())
+        .bind(body.initiator.clone())
+        .bind(body.responsible_employee.clone())
+        .bind(body.deadline)
+        .bind(body.closed)
+        .bind(body.comment.clone())
     .execute(&data.db)
     .await;
+
+    match _query_result {
+        Ok(_) => println!("Row inserted"),
+        Err(e) => println!("Error inserting row: {}", e),
+    }
+
     HttpResponse::Ok().body("Ok, cool!")
 }
 
