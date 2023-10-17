@@ -7,7 +7,6 @@
     "initiator": "Федя Пупкин Амфибрахиевч",
     "responsible_employee": "Козлов Опущенцев",
     "deadline": "2023-09-15",
-    "status": "InProgress",
     "close_date": null,
     "comment": "No comment"
 }

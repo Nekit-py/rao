@@ -8,14 +8,14 @@ pub enum OrderType {
     Disposal,
 }
 
-// impl OrderType {
-//     fn to_string(&self) -> String {
-//         match self {
-//             OrderType::Order => "Приказ".to_string(),
-//             OrderType::Disposal => "Распоряжение".to_string(),
-//         }
-//     }
-// }
+impl OrderType {
+    pub fn to_string(&self) -> String {
+        match self {
+            OrderType::Order => "Приказ".to_string(),
+            OrderType::Disposal => "Распоряжение".to_string(),
+        }
+    }
+}
 
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd, sqlx::Type, Deserialize, Serialize)]
 #[sqlx(rename_all = "lowercase", type_name = "order_status")]
@@ -24,14 +24,14 @@ pub enum OrderStatus {
     InProgress,
 }
 
-// impl Status {
-//     fn to_string(&self) -> String {
-//         match self {
-//             Status::Completed => "Закрыт".to_string(),
-//             Status::InProgress => "На исполнении".to_string(),
-//         }
-//     }
-// }
+impl OrderStatus {
+    pub fn to_string(&self) -> String {
+        match self {
+            OrderStatus::Completed => "Закрыт".to_string(),
+            OrderStatus::InProgress => "На исполнении".to_string(),
+        }
+    }
+}
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct NewOrder {

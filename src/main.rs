@@ -11,22 +11,32 @@ async fn add_order(body: web::Json<NewOrder>, data: web::Data<AppState>) -> Http
         "INSERT INTO _menin.orders (
             deleted, number, order_type, title, initiator, responsible_employee,
             deadline, closed, comment
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)")
-        .bind(body.deleted)
-        .bind(body.number.clone())
-        .bind(body.order_type as OrderType)
-        .bind(body.title.clone())
-        .bind(body.initiator.clone())
-        .bind(body.responsible_employee.clone())
-        .bind(body.deadline)
-        .bind(body.closed)
-        .bind(body.comment.clone())
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+    )
+    .bind(body.deleted)
+    .bind(body.number.clone())
+    .bind(body.order_type as OrderType)
+    .bind(body.title.clone())
+    .bind(body.initiator.clone())
+    .bind(body.responsible_employee.clone())
+    .bind(body.deadline)
+    .bind(body.closed)
+    .bind(body.comment.clone())
     .execute(&data.db)
     .await;
 
     match _query_result {
-        Ok(_) => println!("Row inserted"),
-        Err(e) => println!("Error inserting row: {}", e),
+        Ok(_) => println!(
+            "{} № {} добавлено.",
+            body.order_type.to_string(),
+            body.number
+        ),
+        Err(e) => println!(
+            "Ошибка. Не удалось добавить {} № {}: {}",
+            body.order_type.to_string(),
+            body.number,
+            e
+        ),
     }
 
     HttpResponse::Ok().body("Ok, cool!")
@@ -83,4 +93,3 @@ async fn main() -> std::io::Result<()> {
     .run()
     .await
 }
-

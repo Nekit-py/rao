@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS _menin.ORDERS (
     initiator varchar(70) NOT NULL,
     responsible_employee varchar(70) NOT NULL,
     deadline date NOT NULL,
-    order_status order_status NOT NULL default 'in_progress',
+    status order_status NOT NULL default 'in_progress',
     closed timestamp default null,
     comment TEXT default null
 );
