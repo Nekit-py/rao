@@ -1,60 +1,9 @@
 mod db;
-// use crate::db::OrderModel;
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
-use db::schema::*;
+mod routers;
+use actix_web::{web, App, HttpServer};
 use dotenv::dotenv;
+use routers::*;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
-
-#[post("/add_order")]
-async fn add_order(body: web::Json<NewOrder>, data: web::Data<AppState>) -> HttpResponse {
-    let _query_result = sqlx::query(
-        "INSERT INTO _menin.orders (
-            deleted, number, order_type, title, initiator, responsible_employee,
-            deadline, closed, comment
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
-    )
-    .bind(body.deleted)
-    .bind(body.number.clone())
-    .bind(body.order_type as OrderType)
-    .bind(body.title.clone())
-    .bind(body.initiator.clone())
-    .bind(body.responsible_employee.clone())
-    .bind(body.deadline)
-    .bind(body.closed)
-    .bind(body.comment.clone())
-    .execute(&data.db)
-    .await;
-
-    match _query_result {
-        Ok(_) => println!(
-            "{} № {} добавлено.",
-            body.order_type.to_string(),
-            body.number
-        ),
-        Err(e) => println!(
-            "Ошибка. Не удалось добавить {} № {}: {}",
-            body.order_type.to_string(),
-            body.number,
-            e
-        ),
-    }
-
-    HttpResponse::Ok().body("Ok, cool!")
-}
-
-#[get("/")]
-async fn hello() -> impl Responder {
-    HttpResponse::Ok().body("Hello world!")
-}
-
-#[post("/echo")]
-async fn echo(req_body: String) -> impl Responder {
-    HttpResponse::Ok().body(req_body)
-}
-
-async fn manual_hello() -> impl Responder {
-    HttpResponse::Ok().body("Hey there!")
-}
 
 pub struct AppState {
     db: Pool<Postgres>,
@@ -87,9 +36,11 @@ async fn main() -> std::io::Result<()> {
             .service(hello)
             .service(echo)
             .service(add_order)
+            .service(get_orders)
             .route("/hey", web::get().to(manual_hello))
     })
     .bind(("127.0.0.1", 8080))?
     .run()
-    .await
+    .await?;
+    Ok(())
 }

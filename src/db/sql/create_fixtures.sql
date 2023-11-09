@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS _menin.ORDERS (
     updated timestamp default null,
     order_type order_type NOT NULL default 'order',
     title varchar(80) NOT NULL,
+    discription TEXT NOT NULL,
     initiator varchar(70) NOT NULL,
     responsible_employee varchar(70) NOT NULL,
     deadline date NOT NULL,
