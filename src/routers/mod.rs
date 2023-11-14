@@ -44,7 +44,7 @@ pub async fn add_order(body: web::Json<NewOrder>, data: web::Data<AppState>) -> 
 }
 
 #[get("/get_orders")]
-pub async fn get_orders(data: web::Data<AppState>) -> impl Responder {
+pub async fn get_orders(data: web::Data<AppState>) -> web::Json<Vec<OrderModel>> {
     //https://stackoverflow.com/questions/76465657/how-do-i-create-custom-postgres-enum-types-in-rust-sqlx
     let query_result = sqlx::query_as!(
         OrderModel,
@@ -65,10 +65,10 @@ pub async fn get_orders(data: web::Data<AppState>) -> impl Responder {
             comment
         FROM _menin.orders"#
     )
-    .fetch_one(&data.db)
+    .fetch_all(&data.db)
     .await
     .unwrap();
-    query_result
+    web::Json(query_result)
 }
 
 #[get("/")]
