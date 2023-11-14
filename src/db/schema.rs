@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd, sqlx::Type, Deserialize, Serialize)]
-#[sqlx(rename_all = "lowercase", type_name = "order_type")]
+#[sqlx(rename_all = "snake_case", type_name = "order_type")]
 pub enum OrderType {
     Order,
     Disposal,
@@ -28,7 +28,7 @@ impl Display for OrderType {
 // }
 //
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd, sqlx::Type, Deserialize, Serialize)]
-#[sqlx(rename_all = "lowercase", type_name = "order_status")]
+#[sqlx(rename_all = "snake_case", type_name = "order_status")]
 pub enum OrderStatus {
     Completed,
     InProgress,
