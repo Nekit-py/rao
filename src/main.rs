@@ -37,6 +37,7 @@ async fn main() -> std::io::Result<()> {
             .service(echo)
             .service(add_order)
             .service(get_orders)
+            .service(delete_order)
             .route("/hey", web::get().to(manual_hello))
     })
     .bind(("127.0.0.1", 8080))?
