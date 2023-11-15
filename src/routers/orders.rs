@@ -48,12 +48,12 @@ pub async fn get_orders(data: web::Data<AppState>) -> web::Json<Vec<OrderModel>>
     web::Json(orders)
 }
 
-#[patch("/delete_order")]
-pub async fn delete_order(id: String, data: web::Data<AppState>) -> HttpResponse {
-    let uuid_id: Uuid = Uuid::parse_str(id.as_str()).unwrap();
+#[patch("/delete_order/{id}")]
+pub async fn delete_order(path: web::Path<uuid::Uuid>, data: web::Data<AppState>) -> HttpResponse {
+    let order_id = path.into_inner();
     let query_res = sqlx::query!(
         "update _menin.orders set deleted = true where id = $1",
-        uuid_id
+        order_id
     )
     .execute(&data.db)
     .await
@@ -61,7 +61,7 @@ pub async fn delete_order(id: String, data: web::Data<AppState>) -> HttpResponse
     .rows_affected();
 
     if query_res == 0 {
-        let message = format!("Note with ID: {} not found", uuid_id);
+        let message = format!("Note with ID: {} not found", order_id);
         return HttpResponse::NotFound().json(json!({"status": "fail","message": message}));
     }
 
