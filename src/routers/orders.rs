@@ -3,6 +3,7 @@ use crate::db::NewOrder;
 use crate::db::OrderModel;
 use crate::AppState;
 use actix_web::{get, patch, post, web, HttpResponse};
+use serde_json::json;
 use uuid::Uuid;
 
 #[post("/add_order")]
@@ -40,36 +41,29 @@ pub async fn add_order(body: web::Json<NewOrder>, data: web::Data<AppState>) -> 
 #[get("/get_orders")]
 pub async fn get_orders(data: web::Data<AppState>) -> web::Json<Vec<OrderModel>> {
     //https://stackoverflow.com/questions/76465657/how-do-i-create-custom-postgres-enum-types-in-rust-sqlx
-    //query_file
-    let query_result = sqlx::query_as!(
-        OrderModel,
-        r#"SELECT
-            id,
-            number,
-            deleted,
-            created,
-            updated,
-            order_type as "order_type: OrderType",
-            title,
-            discription,
-            initiator,
-            responsible_employee,
-            deadline,
-            status as "status: OrderStatus",
-            closed,
-            comment
-        FROM _menin.orders"#
-    )
-    .fetch_all(&data.db)
-    .await
-    .unwrap();
-    web::Json(query_result)
+    let orders = sqlx::query_file_as!(OrderModel, "src/db/sql/get_orders.sql")
+        .fetch_all(&data.db)
+        .await
+        .unwrap();
+    web::Json(orders)
 }
 
 #[patch("/delete_order")]
-pub async fn delete_order(id: String) -> HttpResponse {
+pub async fn delete_order(id: String, data: web::Data<AppState>) -> HttpResponse {
     let uuid_id: Uuid = Uuid::parse_str(id.as_str()).unwrap();
-    // let query_res = sqlx::query_as("update _menin.orders set deleted = true where id = $1")
-    println!("{uuid_id}");
+    let query_res = sqlx::query!(
+        "update _menin.orders set deleted = true where id = $1",
+        uuid_id
+    )
+    .execute(&data.db)
+    .await
+    .unwrap()
+    .rows_affected();
+
+    if query_res == 0 {
+        let message = format!("Note with ID: {} not found", uuid_id);
+        return HttpResponse::NotFound().json(json!({"status": "fail","message": message}));
+    }
+
     HttpResponse::Ok().body("Order deleted successfully")
 }
